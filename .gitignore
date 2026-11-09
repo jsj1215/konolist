@@ -1,0 +1,28 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Environment / Secrets (모든 하위 폴더)
+.env
+.env.*
+!.env.example
+!.env*.example
+*.pem
+*.key
+
+# AI tooling (local session state)
+.omc/
+.claude/settings.local.json
+
+# Logs
+*.log
+
+# AI 에이전트 지침 파일 (공개하지 않음)
+CLAUDE.md
+
+# Next.js 에이전트 지침 파일 (공개하지 않음)
+AGENTS.md

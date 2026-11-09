@@ -1,0 +1,245 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&display=swap");
+@import "tailwindcss";
+
+/* Tailwind v4: class 기반 dark mode */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-muted: var(--muted);
+  --font-sans: var(--font-pretendard), "Pretendard Variable", Pretendard, sans-serif;
+  --font-mono: var(--font-geist-mono);
+  --font-display: "Montserrat", sans-serif;
+}
+
+/* 라이트 모드 */
+:root {
+  --background: #f4f0ff;
+  --foreground: #12001f;
+  --surface: #ffffff;
+  --surface-muted: #ede8ff;
+  --border: #d4c8f5;
+  --primary: #8b3cf7;
+  --primary-foreground: #ffffff;
+  --muted: #8b7caa;
+
+  /* Neon accent system */
+  --accent-neon: #c026d3;
+  --accent-violet: #7c3aed;
+  --accent-pink: #ec4899;
+  --accent-glow: rgba(124, 58, 237, 0.25);
+
+  /* Gradient definitions */
+  --gradient-primary: linear-gradient(135deg, #7c3aed 0%, #c026d3 50%, #ec4899 100%);
+  --gradient-surface: linear-gradient(160deg, #ffffff 0%, #f4f0ff 100%);
+  --gradient-neon-glow: linear-gradient(135deg, rgba(124,58,237,0.15) 0%, rgba(192,38,211,0.15) 100%);
+}
+
+/* 다크 모드 (기본값) */
+:root.dark {
+  --background: #07000f;
+  --foreground: #f0e8ff;
+  --surface: #110920;
+  --surface-muted: #1a1030;
+  --border: #2a1d42;
+  --primary: #a855f7;
+  --primary-foreground: #07000f;
+  --muted: #6b5a8a;
+
+  /* Neon accent system — more saturated in dark */
+  --accent-neon: #d946ef;
+  --accent-violet: #8b5cf6;
+  --accent-pink: #f472b6;
+  --accent-glow: rgba(168, 85, 247, 0.3);
+
+  --gradient-primary: linear-gradient(135deg, #8b5cf6 0%, #d946ef 50%, #f472b6 100%);
+  --gradient-surface: linear-gradient(160deg, #110920 0%, #07000f 100%);
+  --gradient-neon-glow: linear-gradient(135deg, rgba(139,92,246,0.2) 0%, rgba(217,70,239,0.2) 100%);
+}
+
+/* ── Base ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: "Pretendard Variable", Pretendard, -apple-system, sans-serif;
+  min-height: 100dvh;
+}
+
+/* ── Neon glow utility keyframes ── */
+@keyframes neon-pulse {
+  0%, 100% { opacity: 1; filter: brightness(1); }
+  50%       { opacity: 0.85; filter: brightness(1.15); }
+}
+
+@keyframes gradient-shift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes slide-up-fade {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin-smooth {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* ── Reusable animation classes ── */
+.animate-neon-pulse {
+  animation: neon-pulse 2.8s ease-in-out infinite;
+}
+
+.animate-slide-up-fade {
+  animation: slide-up-fade 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-spin-smooth {
+  animation: spin-smooth 0.8s linear infinite;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Staggered list items */
+.animate-slide-up-fade:nth-child(1)  { animation-delay: 0ms; }
+.animate-slide-up-fade:nth-child(2)  { animation-delay: 40ms; }
+.animate-slide-up-fade:nth-child(3)  { animation-delay: 80ms; }
+.animate-slide-up-fade:nth-child(4)  { animation-delay: 120ms; }
+.animate-slide-up-fade:nth-child(5)  { animation-delay: 160ms; }
+.animate-slide-up-fade:nth-child(6)  { animation-delay: 200ms; }
+.animate-slide-up-fade:nth-child(7)  { animation-delay: 240ms; }
+.animate-slide-up-fade:nth-child(8)  { animation-delay: 280ms; }
+.animate-slide-up-fade:nth-child(9)  { animation-delay: 320ms; }
+.animate-slide-up-fade:nth-child(10) { animation-delay: 360ms; }
+
+/* ── Logo neon shimmer ── */
+.logo-neon {
+  background: linear-gradient(
+    90deg,
+    var(--accent-violet) 0%,
+    var(--accent-neon)   25%,
+    var(--accent-pink)   50%,
+    var(--accent-violet) 75%,
+    var(--accent-neon)   100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 3s linear infinite;
+}
+
+/* ── Glass morphism card base ── */
+.glass-card {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+:root:not(.dark) .glass-card {
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(139, 92, 246, 0.15);
+}
+
+/* ── Neon border gradient (pseudo trick) ── */
+.neon-border {
+  position: relative;
+}
+.neon-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: var(--gradient-primary);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.neon-border:hover::before,
+.neon-border:focus-within::before {
+  opacity: 1;
+}
+
+/* ── Search input focus glow ── */
+.search-glow:focus {
+  box-shadow: 0 0 0 3px var(--accent-glow), 0 0 20px var(--accent-glow);
+}
+
+/* ── Gradient button ── */
+.btn-gradient {
+  background: var(--gradient-primary);
+  background-size: 200% 200%;
+  transition: background-position 0.4s ease, box-shadow 0.3s ease, transform 0.15s ease;
+}
+.btn-gradient:hover {
+  background-position: right center;
+  box-shadow: 0 0 24px var(--accent-glow), 0 4px 16px rgba(0,0,0,0.3);
+}
+.btn-gradient:active {
+  transform: scale(0.95);
+}
+
+/* ── TJ number badge ── */
+.tj-badge {
+  font-family: "Montserrat", sans-serif;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ── Scrollbar (dark mode) ── */
+:root.dark ::-webkit-scrollbar {
+  width: 4px;
+}
+:root.dark ::-webkit-scrollbar-track {
+  background: transparent;
+}
+:root.dark ::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 2px;
+}
+
+/* ── Safe area for mobile bottom nav ── */
+.pb-safe {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}

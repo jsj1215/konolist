@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KonoList — 내 코노 18번, 이제 한 곳에서</title>
+<style>
+  :root{
+    --bg:#07000f; --text:#f0e8ff; --muted:#a99bc4;
+    --p1:#8b5cf6; --p2:#d946ef; --p3:#f472b6;
+    --glass:rgba(255,255,255,.06); --glass-br:rgba(255,255,255,.12);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{font-family:'Pretendard','Apple SD Gothic Neo',-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.65;overflow-x:hidden}
+  /* animated bg blobs */
+  body::before,body::after{content:"";position:fixed;border-radius:50%;filter:blur(90px);z-index:0;opacity:.5}
+  body::before{width:520px;height:520px;background:var(--p1);top:-160px;left:-120px;animation:float1 14s ease-in-out infinite}
+  body::after{width:460px;height:460px;background:var(--p3);bottom:-160px;right:-120px;animation:float2 16s ease-in-out infinite}
+  @keyframes float1{0%,100%{transform:translate(0,0)}50%{transform:translate(60px,50px)}}
+  @keyframes float2{0%,100%{transform:translate(0,0)}50%{transform:translate(-50px,-40px)}}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px;position:relative;z-index:1}
+  a{color:inherit;text-decoration:none}
+  .grad{background:linear-gradient(135deg,var(--p1),var(--p2),var(--p3));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;background-size:200% 200%;animation:gshift 6s ease infinite}
+  @keyframes gshift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+  .gbar{background:linear-gradient(135deg,var(--p1),var(--p2),var(--p3));background-size:200% 200%;animation:gshift 6s ease infinite}
+
+  nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(16px);background:rgba(7,0,15,.6);border-bottom:1px solid var(--glass-br)}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:62px}
+  .logo{font-weight:800;font-size:19px;display:flex;align-items:center;gap:8px}
+  .nav-links{display:flex;gap:26px;font-size:14px;color:var(--muted)}
+  .nav-links a:hover{color:var(--text)}
+  @media(max-width:680px){.nav-links{display:none}}
+  .btn{border:none;cursor:pointer;font-weight:700;border-radius:14px;transition:.25s;font-size:15px;padding:14px 28px;color:#fff}
+  .btn-primary{box-shadow:0 10px 30px rgba(217,70,239,.4)}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 14px 38px rgba(217,70,239,.6)}
+  .btn-ghost{background:var(--glass);border:1px solid var(--glass-br);backdrop-filter:blur(10px)}
+  .btn-ghost:hover{border-color:var(--p2)}
+
+  .hero{padding:90px 0 70px;text-align:center}
+  .badge{display:inline-flex;align-items:center;gap:8px;font-size:13px;padding:7px 16px;border-radius:999px;background:var(--glass);border:1px solid var(--glass-br);backdrop-filter:blur(10px);margin-bottom:26px;color:var(--text)}
+  h1{font-size:clamp(36px,7vw,64px);font-weight:900;letter-spacing:-2px;line-height:1.1}
+  .hero .sub{margin:24px auto 0;max-width:560px;font-size:18px;color:var(--muted)}
+  .cta{display:flex;gap:14px;justify-content:center;margin-top:38px;flex-wrap:wrap}
+
+  /* phone frame */
+  .phone{width:300px;border-radius:42px;background:linear-gradient(160deg,#1a0a2e,#0a0418);border:1px solid var(--glass-br);padding:12px;box-shadow:0 40px 90px rgba(0,0,0,.6),inset 0 0 0 2px rgba(255,255,255,.04)}
+  .phone .notch{width:120px;height:24px;background:#000;border-radius:0 0 16px 16px;margin:0 auto 6px}
+  .phone .scr{border-radius:30px;overflow:hidden;background:#0d0418;min-height:520px;display:flex;flex-direction:column}
+  .ph-top{padding:16px 16px 10px;display:flex;align-items:center;justify-content:space-between}
+  .ph-top .t{font-weight:800;font-size:16px}
+  .ph-body{padding:6px 14px 16px;flex:1}
+
+  .hero-phones{display:flex;gap:30px;justify-content:center;margin-top:60px;flex-wrap:wrap}
+  .hero-phones .phone{transition:.4s}
+  .hero-phones .phone:hover{transform:translateY(-10px)}
+
+  /* glass card generic */
+  .glass{background:var(--glass);border:1px solid var(--glass-br);backdrop-filter:blur(12px);border-radius:18px}
+
+  /* search mockup */
+  .searchbar{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border:1px solid var(--glass-br);border-radius:14px;padding:11px 14px;font-size:13px;color:var(--muted);margin-bottom:12px}
+  .song{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.05);border:1px solid var(--glass-br);border-radius:13px;padding:11px 12px;margin-bottom:9px}
+  .tj{flex-shrink:0;font-weight:800;font-size:12px;color:#fff;border-radius:9px;padding:6px 9px;min-width:52px;text-align:center}
+  .song .info{min-width:0}
+  .song .ti{font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .song .ar{font-size:11px;color:var(--muted);margin-top:2px}
+  .song .grab{margin-left:auto;color:var(--muted);font-size:16px;cursor:grab}
+  .song.drag{box-shadow:0 8px 22px rgba(217,70,239,.4);border-color:var(--p2);transform:scale(1.03)}
+
+  /* calendar */
+  .cal-head{text-align:center;font-weight:800;font-size:14px;margin-bottom:12px}
+  .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+  .cal .dow{font-size:10px;color:var(--muted);text-align:center;padding-bottom:4px}
+  .cal .day{aspect-ratio:1;display:grid;place-items:center;font-size:12px;border-radius:9px;background:rgba(255,255,255,.04);color:var(--muted)}
+  .cal .day.has{color:#fff;font-weight:700;position:relative}
+  .cal .day.has::after{content:"🎤";position:absolute;bottom:1px;font-size:8px}
+  .cal .day.t{background:linear-gradient(135deg,var(--p1),var(--p3));color:#fff;font-weight:800}
+
+  /* shared list */
+  .share-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:12px;border-radius:14px}
+  .share-head .av{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-size:18px;background:rgba(255,255,255,.15)}
+  .share-head .nm{font-weight:800;font-size:14px}
+  .share-head .mt{font-size:11px;color:var(--muted)}
+  .pill{display:inline-block;font-size:11px;padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.1);border:1px solid var(--glass-br);margin-top:4px}
+
+  section{padding:80px 0}
+  .sec-head{text-align:center;max-width:620px;margin:0 auto 50px}
+  .kicker{font-weight:800;font-size:13px;letter-spacing:2px;color:var(--p3)}
+  .sec-head h2{font-size:clamp(28px,4.5vw,40px);font-weight:900;letter-spacing:-1px;margin-top:10px}
+  .sec-head p{color:var(--muted);margin-top:14px;font-size:16px}
+
+  .feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  @media(max-width:820px){.feat-grid{grid-template-columns:1fr}}
+  .fcard{padding:28px;border-radius:20px;transition:.3s}
+  .fcard:hover{transform:translateY(-5px);border-color:var(--p2);box-shadow:0 18px 44px rgba(139,92,246,.25)}
+  .fcard .ic{width:52px;height:52px;border-radius:15px;display:grid;place-items:center;font-size:24px;margin-bottom:16px}
+  .fcard h3{font-size:18px;font-weight:800;margin-bottom:9px}
+  .fcard p{color:var(--muted);font-size:14px}
+
+  /* feature showcase rows */
+  .show{display:grid;grid-template-columns:300px 1fr;gap:50px;align-items:center;margin-bottom:70px}
+  .show.rev{grid-template-columns:1fr 300px}
+  .show.rev .ph-col{order:2}
+  @media(max-width:760px){.show,.show.rev{grid-template-columns:1fr;justify-items:center;gap:30px}.show.rev .ph-col{order:0}}
+  .ph-col{display:flex;justify-content:center}
+  .show .txt h3{font-size:26px;font-weight:900;letter-spacing:-.5px;margin-bottom:14px}
+  .show .txt p{color:var(--muted);font-size:15px;margin-bottom:16px}
+  .show .txt ul{list-style:none;display:flex;flex-direction:column;gap:10px}
+  .show .txt li{font-size:14px;display:flex;gap:10px;align-items:center}
+  .show .txt li b{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:7px;font-size:12px;flex-shrink:0}
+
+  .tech{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+  .chip{padding:11px 20px;border-radius:13px;font-weight:700;font-size:14px;background:var(--glass);border:1px solid var(--glass-br);backdrop-filter:blur(10px)}
+
+  .reveal{opacity:0;transform:translateY(30px);transition:.7s cubic-bezier(.2,.7,.2,1)}
+  .reveal.in{opacity:1;transform:none}
+
+  /* ---- added: engineering sections ---- */
+  a.btn{display:inline-block}
+  .nav-links a.gh{color:var(--text);font-weight:700}
+  @media(max-width:360px){.phone{width:100%}}
+  .why-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:18px;align-items:stretch}
+  .why-grid .arrow{display:grid;place-items:center;font-size:28px;color:var(--p2)}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr}.why-grid .arrow{transform:rotate(90deg)}}
+  .why-card{padding:26px;border-radius:20px}
+  .why-card h3{font-size:17px;font-weight:800;margin-bottom:12px}
+  .why-card ul{list-style:none;display:flex;flex-direction:column;gap:9px;font-size:14px;color:var(--muted)}
+  .why-card li::before{content:"— ";color:var(--p3)}
+  .arch{display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:16px;align-items:center}
+  @media(max-width:820px){.arch{grid-template-columns:1fr}}
+  .arch-col{display:flex;flex-direction:column;gap:12px}
+  .node{padding:16px 18px;border-radius:16px;min-width:0}
+  .node .nt{font-weight:800;font-size:15px}
+  .node .nd{font-size:12.5px;color:var(--muted);margin-top:4px;overflow-wrap:anywhere}
+  .node.core{border-color:var(--p2);box-shadow:0 0 0 1px rgba(217,70,239,.35),0 18px 44px rgba(139,92,246,.25)}
+  .node.core ul{list-style:none;margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .node.core li{font-size:12px;padding:6px 8px;border-radius:9px;background:rgba(255,255,255,.06);border:1px solid var(--glass-br);overflow-wrap:anywhere}
+  .link-lbl{font-size:11.5px;color:var(--p3);font-weight:700;text-align:center;letter-spacing:.3px}
+  .flow{margin-top:34px;padding:24px;border-radius:20px}
+  .flow h3{font-size:16px;font-weight:800;margin-bottom:14px}
+  .steps{list-style:none;display:flex;flex-direction:column;gap:10px;counter-reset:st}
+  .steps li{display:flex;gap:12px;font-size:14px;color:var(--muted);counter-increment:st}
+  .steps li::before{content:counter(st);flex-shrink:0;width:24px;height:24px;border-radius:8px;display:grid;place-items:center;font-size:12px;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--p1),var(--p3))}
+  .steps b{color:var(--text)}
+  code{font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.88em;background:rgba(255,255,255,.08);border:1px solid var(--glass-br);border-radius:6px;padding:1px 6px;overflow-wrap:anywhere}
+  .dec-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+  @media(max-width:820px){.dec-grid{grid-template-columns:1fr}}
+  .dec{padding:24px;border-radius:20px;min-width:0}
+  .dec .no{font-size:12px;font-weight:800;color:var(--p3);letter-spacing:1.5px}
+  .dec h3{font-size:17px;font-weight:800;margin:6px 0 12px}
+  .dec dl{display:grid;grid-template-columns:auto 1fr;gap:8px 12px;font-size:13.5px}
+  .dec dt{font-weight:800;color:var(--text);white-space:nowrap}
+  .dec dd{color:var(--muted);min-width:0}
+  .dec .src{margin-top:12px;font-size:12px;color:var(--muted)}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:820px){.two{grid-template-columns:1fr}}
+  .panel{padding:24px;border-radius:20px;min-width:0}
+  .panel h3{font-size:16px;font-weight:800;margin-bottom:14px}
+  .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--glass-br);vertical-align:top}
+  th{color:var(--p3);font-size:12px;letter-spacing:.5px}
+  td{color:var(--muted)}
+  td:first-child{color:var(--text);font-weight:700;white-space:nowrap}
+  .ent{margin-bottom:12px;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--glass-br)}
+  .ent .en{font-weight:800;font-size:14px}
+  .ent .ef{font-size:12.5px;color:var(--muted);margin-top:4px;overflow-wrap:anywhere}
+  .chk{list-style:none;display:flex;flex-direction:column;gap:10px;font-size:14px;color:var(--muted)}
+  .chk li{display:flex;gap:10px}
+  .chk li::before{content:"✓";color:var(--p2);font-weight:900;flex-shrink:0}
+  .chk.warn li::before{content:"!";color:var(--p3)}
+  pre{background:rgba(0,0,0,.35);border:1px solid var(--glass-br);border-radius:14px;padding:16px;overflow-x:auto;font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;line-height:1.7;color:#e9dcff;max-width:100%}
+  pre code{background:none;border:none;padding:0;font-size:inherit}
+  .note{font-size:13px;color:var(--muted);margin-top:12px}
+  .gh-cta{display:flex;justify-content:center;margin-top:36px}
+
+  footer{border-top:1px solid var(--glass-br);padding:46px 0;text-align:center;color:var(--muted);font-size:13px}
+  footer h3{color:var(--text);font-size:22px;font-weight:900;margin-bottom:8px}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="logo">🎤 <span class="grad">KonoList</span></div>
+    <div class="nav-links">
+      <a href="#features">기능</a>
+      <a href="#showcase">화면</a>
+      <a href="#why">배경</a>
+      <a href="#arch">설계</a>
+      <a href="#run">실행</a>
+      <a class="gh" href="https://github.com/jsj1215/konolist" target="_blank" rel="noopener">GitHub ↗</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="badge">🎤 코인노래방 플레이리스트 매니저</div>
+    <h1>내 코노 18번,<br><span class="grad">이제 한 곳에서.</span></h1>
+    <p class="sub">부를 노래가 생각 안 나서 검색만 하다 시간 다 보내셨나요? TJ 번호와 함께 나만의 노래 리스트를 만들고, 친구와 공유하고, 다녀온 날을 캘린더에 기록하세요.</p>
+    <div class="cta">
+      <a class="btn btn-primary gbar" href="https://github.com/jsj1215/konolist" target="_blank" rel="noopener">GitHub 저장소 보기</a>
+      <a class="btn btn-ghost" href="#arch">설계 둘러보기</a>
+    </div>
+
+    <div class="hero-phones">
+      <!-- phone 1: search -->
+      <div class="phone reveal">
+        <div class="notch"></div>
+        <div class="scr">
+          <div class="ph-top"><div class="t">🔍 노래 검색</div></div>
+          <div class="ph-body">
+            <div class="searchbar">🔍 아이유</div>
+            <div class="song"><div class="tj gbar">68402</div><div class="info"><div class="ti">밤편지</div><div class="ar">아이유</div></div></div>
+            <div class="song"><div class="tj gbar">48723</div><div class="info"><div class="ti">좋은 날</div><div class="ar">아이유</div></div></div>
+            <div class="song"><div class="tj gbar">71203</div><div class="info"><div class="ti">Love wins all</div><div class="ar">아이유</div></div></div>
+            <div class="song"><div class="tj gbar">62018</div><div class="info"><div class="ti">에잇 (eight)</div><div class="ar">아이유, 슈가</div></div></div>
+            <div class="song"><div class="tj gbar">37115</div><div class="info"><div class="ti">팔레트</div><div class="ar">아이유, G-DRAGON</div></div></div>
+          </div>
+        </div>
+      </div>
+      <!-- phone 2: playlist -->
+      <div class="phone reveal">
+        <div class="notch"></div>
+        <div class="scr">
+          <div class="ph-top"><div class="t">🎵 내 18번</div><div style="font-size:12px;color:var(--muted)">12곡</div></div>
+          <div class="ph-body">
+            <div class="song drag"><div class="tj gbar">48723</div><div class="info"><div class="ti">좋은 날</div><div class="ar">아이유</div></div><div class="grab">⠿</div></div>
+            <div class="song"><div class="tj gbar">33012</div><div class="info"><div class="ti">사건의 지평선</div><div class="ar">윤하</div></div><div class="grab">⠿</div></div>
+            <div class="song"><div class="tj gbar">28840</div><div class="info"><div class="ti">밤하늘의 별을</div><div class="ar">경서</div></div><div class="grab">⠿</div></div>
+            <div class="song"><div class="tj gbar">19273</div><div class="info"><div class="ti">신호등</div><div class="ar">이무진</div></div><div class="grab">⠿</div></div>
+            <div class="song"><div class="tj gbar">55401</div><div class="info"><div class="ti">취중고백</div><div class="ar">김민석</div></div><div class="grab">⠿</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- why -->
+<section id="why">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="kicker">WHY</div>
+      <h2>왜 만들었나</h2>
+      <p>코인 노래방은 시간이 돈입니다. 그런데 부를 노래를 고르는 시간도 그 안에 들어가 있었습니다.</p>
+    </div>
+    <div class="why-grid">
+      <div class="why-card glass reveal">
+        <h3>😵 문제</h3>
+        <ul>
+          <li>방에 들어간 뒤에야 부를 노래를 떠올리고, 기기에서 제목을 하나씩 검색함</li>
+          <li>메모장 애창곡 목록에는 TJ 번호가 없어 다시 찾아야 함</li>
+          <li>분위기별로 나누거나 부를 순서를 바꾸기 번거로움</li>
+          <li>친구의 애창곡을 받으려면 캡처나 메시지로 주고받아야 함</li>
+        </ul>
+      </div>
+      <div class="arrow reveal">➜</div>
+      <div class="why-card glass reveal">
+        <h3>🎤 해결</h3>
+        <ul>
+          <li>검색 결과에 TJ 번호가 바로 붙어 나오고, 한 번 눌러 리스트에 담음</li>
+          <li>리스트 안에서 드래그로 순서를 정하고 곡별 메모를 남김</li>
+          <li>공개 링크 하나로 공유하고, 받은 사람은 자기 보관함으로 복사</li>
+          <li>노래방에서는 리스트를 열어 번호만 입력하면 끝</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- features -->
+<section id="features">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="kicker">FEATURES</div>
+      <h2>코노 갈 때 필요한 모든 것</h2>
+      <p>검색부터 정리, 공유, 기록까지 하나의 앱에서.</p>
+    </div>
+    <div class="feat-grid">
+      <div class="fcard glass reveal"><div class="ic gbar">🔍</div><h3>실시간 노래 검색</h3><p>제목·가수로 검색하면 TJ 노래방 번호가 자동으로 표시됩니다. 번호 외우거나 따로 찾을 필요 없습니다.</p></div>
+      <div class="fcard glass reveal"><div class="ic gbar">🎵</div><h3>플레이리스트 관리</h3><p>나만의 리스트에 노래를 담고, 드래그로 부르고 싶은 순서대로 정렬하세요. "2키 낮춰서" 같은 곡별 메모도 남길 수 있습니다.</p></div>
+      <div class="fcard glass reveal"><div class="ic gbar">🔗</div><h3>플레이리스트 공유</h3><p>내 리스트를 공개로 전환하고 링크로 친구에게 공유하세요. 받은 리스트는 내 보관함으로 복사할 수 있습니다.</p></div>
+      <div class="fcard glass reveal"><div class="ic gbar">📅</div><h3>캘린더 방문 일기</h3><p>코노 다녀온 날을 캘린더에 기록하고, 그날 부른 플레이리스트를 연결하세요. 언제 갔는지 한눈에 보입니다.</p></div>
+      <div class="fcard glass reveal"><div class="ic gbar">🎙️</div><h3>곡별 녹음</h3><p>브라우저 마이크로 바로 녹음해 곡마다 저장하고, 나중에 다시 들으며 연습할 수 있습니다.</p></div>
+      <div class="fcard glass reveal"><div class="ic gbar">⚡</div><h3>검색 캐시</h3><p>한 번 검색한 키워드는 1시간 동안 Redis 캐시에서 바로 응답해, TJ 사이트를 매번 다시 조회하지 않습니다.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- showcase -->
+<section id="showcase">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="kicker">SCREENS</div>
+      <h2>실제 화면으로 보기</h2>
+    </div>
+
+    <!-- calendar -->
+    <div class="show reveal">
+      <div class="ph-col">
+        <div class="phone">
+          <div class="notch"></div>
+          <div class="scr">
+            <div class="ph-top"><div class="t">📅 방문 일기</div></div>
+            <div class="ph-body">
+              <div class="cal-head">2026년 6월</div>
+              <div class="cal">
+                <div class="dow">일</div><div class="dow">월</div><div class="dow">화</div><div class="dow">수</div><div class="dow">목</div><div class="dow">금</div><div class="dow">토</div>
+                <div class="day">1</div><div class="day has">2</div><div class="day">3</div><div class="day">4</div><div class="day">5</div><div class="day has">6</div><div class="day">7</div>
+                <div class="day">8</div><div class="day">9</div><div class="day has">10</div><div class="day">11</div><div class="day">12</div><div class="day">13</div><div class="day has">14</div>
+                <div class="day">15</div><div class="day">16</div><div class="day">17</div><div class="day has">18</div><div class="day">19</div><div class="day">20</div><div class="day has">21</div>
+                <div class="day">22</div><div class="day t">23</div><div class="day">24</div><div class="day">25</div><div class="day">26</div><div class="day">27</div><div class="day">28</div>
+              </div>
+              <div style="margin-top:16px;font-size:12px;color:var(--muted);text-align:center">🎤 표시된 날 = 방문 기록</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="txt">
+        <h3>다녀온 날을 기록으로</h3>
+        <p>코노에 다녀온 날을 고르고 그날 부른 플레이리스트를 연결해 두면, 언제 어떤 리스트로 놀았는지가 자연스럽게 쌓입니다. 나만의 노래방 다이어리가 됩니다.</p>
+        <ul>
+          <li><b class="gbar">🎤</b> 방문일 한눈에 보기</li>
+          <li><b class="gbar">🎵</b> 날짜마다 플레이리스트 연결</li>
+          <li><b class="gbar">🗓️</b> 날짜별 기록 남기기</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- shared playlist -->
+    <div class="show rev reveal">
+      <div class="ph-col">
+        <div class="phone">
+          <div class="notch"></div>
+          <div class="scr">
+            <div class="ph-top"><div class="t">🔗 공유된 리스트</div></div>
+            <div class="ph-body">
+              <div class="share-head glass">
+                <div class="av">😎</div>
+                <div>
+                  <div class="nm">민지의 발라드 모음</div>
+                  <div class="mt">9곡</div>
+                  <span class="pill">🌐 공개</span>
+                </div>
+              </div>
+              <div class="song"><div class="tj gbar">33012</div><div class="info"><div class="ti">사건의 지평선</div><div class="ar">윤하</div></div></div>
+              <div class="song"><div class="tj gbar">68402</div><div class="info"><div class="ti">밤편지</div><div class="ar">아이유</div></div></div>
+              <div class="song"><div class="tj gbar">41207</div><div class="info"><div class="ti">모든 날, 모든 순간</div><div class="ar">폴킴</div></div></div>
+              <div class="song"><div class="tj gbar">29183</div><div class="info"><div class="ti">우리가 헤어져야 했던 이유</div><div class="ar">비비</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="txt">
+        <h3>친구의 18번, 링크 하나로</h3>
+        <p>내 플레이리스트를 공개로 바꾸면 링크가 생깁니다. 친구에게 보내면 회원가입 없이도 내 리스트를 볼 수 있고, 로그인한 친구는 버튼 한 번으로 자기 보관함에 복사할 수 있습니다.</p>
+        <ul>
+          <li><b class="gbar">🌐</b> 공개/비공개 전환</li>
+          <li><b class="gbar">🔗</b> 링크로 간편 공유</li>
+          <li><b class="gbar">📥</b> 내 보관함으로 복사</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- architecture -->
+<section id="arch">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="kicker">ARCHITECTURE</div>
+      <h2>시스템 구성</h2>
+      <p>Next.js 프론트엔드와 Spring Boot REST API를 분리하고, 외부 사이트 크롤링 앞에 Redis 캐시를 두었습니다.</p>
+    </div>
+
+    <div class="arch reveal">
+      <div class="arch-col">
+        <div class="node glass">
+          <div class="nt">📱 모바일 브라우저</div>
+          <div class="nd">클라이언트 컴포넌트에서 <code>Authorization: Bearer</code>를 붙여 API 직접 호출</div>
+        </div>
+        <div class="link-lbl">세션 · 로그인 위임 ↕</div>
+        <div class="node glass">
+          <div class="nt">⚛️ Next.js 16.4</div>
+          <div class="nd">App Router 페이지 + NextAuth Credentials provider. 로그인 시 백엔드 <code>/api/auth/login</code>을 호출해 받은 JWT를 세션에 보관</div>
+        </div>
+      </div>
+
+      <div class="arch-col">
+        <div class="link-lbl">REST / JSON ⇄</div>
+        <div class="node glass core">
+          <div class="nt">🍃 Spring Boot 3.5.16 API</div>
+          <div class="nd">Stateless Spring Security + JWT 필터, 도메인별 패키지 구성</div>
+          <ul>
+            <li>auth</li><li>song</li>
+            <li>playlist</li><li>recording</li>
+            <li>calendarlog</li><li>common/config</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="arch-col">
+        <div class="node glass">
+          <div class="nt">🐘 PostgreSQL</div>
+          <div class="nd">users · playlists · playlist_songs · calendar_logs</div>
+        </div>
+        <div class="node glass">
+          <div class="nt">⚡ Redis</div>
+          <div class="nd"><code>song:search:{검색어}</code> TTL 1시간</div>
+        </div>
+        <div class="node glass">
+          <div class="nt">🕷️ tjmedia.com</div>
+          <div class="nd">캐시 미스일 때만 Jsoup으로 조회 (timeout 8초, 20건)</div>
+        </div>
+        <div class="node glass">
+          <div class="nt">💾 로컬 디스크</div>
+          <div class="nd"><code>recordings/{playlistId}/{songId}.webm</code></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow glass reveal">
+      <h3>🔍 노래 검색 한 번에 일어나는 일</h3>
+      <ol class="steps">
+        <li><span><b>요청</b> — <code>GET /api/songs/search?q=아이유</code> (비로그인 허용, 1~50자 검증)</span></li>
+        <li><span><b>캐시 조회</b> — 검색어를 소문자·공백 정리해 <code>song:search:아이유</code> 키로 Redis 조회</span></li>
+        <li><span><b>히트</b> — 저장된 JSON을 그대로 반환</span></li>
+        <li><span><b>미스</b> — Jsoup으로 TJ 검색 페이지를 가져와 CSS 셀렉터로 번호·제목·가수를 파싱하고 TJ 번호 기준으로 중복 제거</span></li>
+        <li><span><b>저장</b> — 결과가 있을 때만 TTL 1시간으로 캐시. 크롤링 실패로 빈 결과가 나오면 캐시하지 않아 다음 요청에서 다시 시도</span></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- design decisions -->
+<section id="decisions">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="kicker">DESIGN DECISIONS</div>
+      <h2>설계하면서 내린 결정</h2>
+      <p>각 결정의 이유와 함께, 감수한 비용도 적었습니다.</p>
+    </div>
+    <div class="dec-grid">
+      <div class="dec glass reveal">
+        <div class="no">01</div>
+        <h3>곡 마스터 테이블 대신 캐시 + 비정규화</h3>
+        <dl>
+          <dt>결정</dt><dd>검색 결과는 Redis에만 1시간 보관하고, 리스트에 담을 때 TJ 번호·제목·가수를 <code>playlist_songs</code>에 복사</dd>
+          <dt>이유</dt><dd>TJ 전곡을 받을 공식 API가 없어 곡 마스터를 정확히 유지하기 어려움. 담은 곡은 원본 사이트가 바뀌어도 남아야 함</dd>
+          <dt>비용</dt><dd>Redis 장애 시 검색 실패. TJ 마크업이 바뀌면 셀렉터 수정 필요</dd>
+        </dl>
+        <div class="src"><code>song/SongSearchService.java</code></div>
+      </div>
+      <div class="dec glass reveal">
+        <div class="no">02</div>
+        <h3>@Cacheable 대신 StringRedisTemplate</h3>
+        <dl>
+          <dt>결정</dt><dd>캐시 조회·저장을 코드로 직접 작성</dd>
+          <dt>이유</dt><dd>크롤링 실패로 빈 리스트가 나왔을 때 그 결과를 1시간 동안 캐시해 버리는 일을 막기 위함</dd>
+          <dt>비용</dt><dd>직렬화·예외 처리 코드를 직접 관리. 역직렬화 실패 시 재크롤링으로 폴백</dd>
+        </dl>
+        <div class="src"><code>song/SongSearchService.java</code></div>
+      </div>
+      <div class="dec glass reveal">
+        <div class="no">03</div>
+        <h3>공유 URL은 UUID 토큰 + 공개 여부 이중 확인</h3>
+        <dl>
+          <dt>결정</dt><dd>생성 시 수정 불가 <code>shareToken</code>(UUID) 발급. 조회·복사는 토큰으로 찾은 뒤 <code>isPublic</code>일 때만 허용</dd>
+          <dt>이유</dt><dd>순차 ID를 쓰면 번호만 바꿔 남의 리스트를 열 수 있음. 비공개로 돌리면 같은 링크가 즉시 막힘</dd>
+          <dt>비용</dt><dd>토큰 재발급 기능이 없어 퍼진 링크는 비공개 전환으로만 차단</dd>
+        </dl>
+        <div class="src"><code>playlist/Playlist.java</code>, <code>PlaylistService#getByShareToken</code></div>
+      </div>
+      <div class="dec glass reveal">
+        <div class="no">04</div>
+        <h3>JWT는 Spring이 발급, NextAuth는 보관만</h3>
+        <dl>
+          <dt>결정</dt><dd>백엔드가 BCrypt로 비밀번호를 검증하고 JWT 발급. NextAuth Credentials provider가 이를 호출해 세션에 저장</dd>
+          <dt>이유</dt><dd>인증 규칙과 사용자 데이터는 백엔드 한곳에 두고, 프론트는 NextAuth의 세션 관리만 활용</dd>
+          <dt>비용</dt><dd>토큰 만료 24시간, 리프레시 토큰 없음. NextAuth 세션도 24시간으로 맞추고, 401을 받으면 로그아웃 처리</dd>
+        </dl>
+        <div class="src"><code>common/config/SecurityConfig.java</code>, <code>api/auth/[...nextauth]/route.ts</code></div>
+      </div>
+      <div class="dec glass reveal">
+        <div class="no">05</div>
+        <h3>인가는 서비스 계층의 소유권 검사로</h3>
+        <dl>
+          <dt>결정</dt><dd>Security 설정은 인증 여부만 확인. 리스트·곡·녹음·기록 접근 시 서비스에서 소유자를 비교하고 아니면 403</dd>
+          <dt>이유</dt><dd>"내 리소스인가"는 URL 패턴으로 판단할 수 없음. 곡은 <code>findByIdAndPlaylistId</code>로 소속 리스트까지 확인</dd>
+          <dt>비용</dt><dd>검사 코드와 예외 핸들러가 서비스·컨트롤러마다 중복</dd>
+        </dl>
+        <div class="src"><code>PlaylistService#getPlaylistWithOwnerCheck</code></div>
+      </div>
+      <div class="dec glass reveal">
+        <div class="no">06</div>
+        <h3>순서 변경은 전체 ID 배열 덮어쓰기</h3>
+        <dl>
+          <dt>결정</dt><dd>드래그 직후 화면 순서를 먼저 바꾸고, 전체 곡 ID 배열을 <code>PATCH /songs/reorder</code>로 전송. 서버는 인덱스를 <code>sortOrder</code>로 저장</dd>
+          <dt>이유</dt><dd>리스트당 수십 곡 규모라 전체 덮어쓰기가 가장 단순하고 정렬 키 충돌이 없음</dd>
+          <dt>비용</dt><dd>곡 수만큼 UPDATE 발생. 저장 실패 시 화면 롤백 없음</dd>
+        </dl>
+        <div class="src"><code>PlaylistService#reorder</code>, <code>playlists/[id]/page.tsx</code></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- data & api -->
+<section id="data">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="kicker">DATA &amp; API</div>
+      <h2>데이터 모델과 API</h2>
+    </div>
+    <div class="two">
+      <div class="panel glass reveal">
+        <h3>🗂️ 엔티티 (JPA)</h3>
+        <div class="ent"><div class="en">users</div><div class="ef">email (unique) · password (BCrypt) · nickname · created_at</div></div>
+        <div class="ent"><div class="en">playlists</div><div class="ef">user → users · title · description · is_public · share_token (UUID, unique) · created_at · updated_at</div></div>
+        <div class="ent"><div class="en">playlist_songs</div><div class="ef">playlist → playlists · tj_number · title · artist · memo · recording_path · sort_order</div></div>
+        <div class="ent"><div class="en">calendar_logs</div><div class="ef">user · date · playlist — <code>(user_id, date, playlist_id)</code> 유니크 제약</div></div>
+        <p class="note">리스트를 지우면 곡도 함께 삭제됩니다 (<code>cascade = ALL, orphanRemoval</code>). 같은 리스트에 같은 TJ 번호는 한 번만 담을 수 있습니다.</p>
+      </div>
+      <div class="panel glass reveal">
+        <h3>🔌 REST API</h3>
+        <div class="tbl-wrap">
+          <table>
+            <tr><th>영역</th><th>엔드포인트</th></tr>
+            <tr><td>인증</td><td><code>POST /api/auth/signup</code> <code>POST /api/auth/login</code></td></tr>
+            <tr><td>검색</td><td><code>GET /api/songs/search?q=</code> (공개)</td></tr>
+            <tr><td>리스트</td><td><code>GET·POST /api/playlists</code> <code>GET·PATCH·DELETE /api/playlists/{id}</code></td></tr>
+            <tr><td>곡</td><td><code>POST /{id}/songs</code> <code>DELETE /{id}/songs/{songId}</code> <code>PATCH …/memo</code> <code>PATCH /{id}/songs/reorder</code></td></tr>
+            <tr><td>공유</td><td><code>GET /{shareToken}/share</code> (공개) <code>POST /{shareToken}/copy</code></td></tr>
+            <tr><td>녹음</td><td><code>POST·GET·DELETE /{id}/songs/{songId}/recording</code></td></tr>
+            <tr><td>기록</td><td><code>GET /api/logs?date=</code> <code>GET /api/logs/dates?year=&amp;month=</code> <code>POST /api/logs</code> <code>DELETE /api/logs/{id}</code></td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- security -->
+<section id="security">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="kicker">SECURITY</div>
+      <h2>보안 설계</h2>
+    </div>
+    <div class="two">
+      <div class="panel glass reveal">
+        <h3>🛡️ 적용한 것</h3>
+        <ul class="chk">
+          <li>비밀번호는 BCrypt 해시로만 저장, 로그인 실패 메시지는 이메일·비밀번호 구분 없이 동일</li>
+          <li>Stateless 세션, 매 요청 JWT 서명 검증 후 SecurityContext 설정</li>
+          <li>인증 없이 열린 경로는 로그인/회원가입, 노래 검색, 공개 리스트 조회 세 가지뿐</li>
+          <li>모든 쓰기·조회는 서비스 계층에서 소유자 확인, 위반 시 403</li>
+          <li>CORS는 <code>localhost:3000</code>과 <code>FRONTEND_URL</code>만 허용</li>
+          <li>JWT 시크릿은 기본값 없이 필수. 비었거나 32바이트 미만이거나 <code>change-me</code>로 시작하면 기동 실패</li>
+          <li>토큰이 없거나 만료되면 401, 프론트가 받으면 로그아웃 처리</li>
+          <li>공유 링크는 전용 DTO로 곡 번호·제목·가수·순서만 공개 (메모, 녹음 여부, 내부 ID 제외)</li>
+          <li>녹음은 오디오 형식만, 파일당 20MB까지. 경로는 서버가 정한 ID로만 만들고, 곡·리스트 삭제 시 파일도 정리</li>
+          <li>Next.js 보안 헤더(nosniff, 프레임 금지, 마이크만 허용하는 Permissions-Policy)</li>
+          <li>시크릿은 환경변수로 주입, <code>.env</code>와 녹음 파일 디렉터리는 Git에서 제외</li>
+        </ul>
+      </div>
+      <div class="panel glass reveal">
+        <h3>⚠️ 알고 있는 한계</h3>
+        <ul class="chk warn">
+          <li>리프레시 토큰이 없어 24시간 뒤 재로그인 필요</li>
+          <li>로그인과 노래 검색에 요청 횟수 제한이 없음</li>
+          <li>녹음 파일이 로컬 디스크에 있어 서버를 늘리면 공유 스토리지가 필요</li>
+          <li>카카오 로그인은 기획에만 있고 현재는 이메일/비밀번호 방식</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- run -->
+<section id="run">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="kicker">GET STARTED</div>
+      <h2>로컬에서 실행하기</h2>
+      <p>Java 21, Node.js 20.9+, PostgreSQL, Redis가 필요합니다.</p>
+    </div>
+    <div class="two">
+      <div class="panel glass reveal">
+        <h3>🍃 Backend</h3>
+<pre><code>cd backend
+cp .env.example .env
+# JWT_SECRET 채우기: openssl rand -base64 48
+./mvnw spring-boot:run   # :8080, .env 자동 로드
+
+./mvnw test              # 16개, H2로 실행 (DB·Redis 불필요)</code></pre>
+        <p class="note">DB·Redis 값이 없으면 로컬 기본값(PostgreSQL <code>konolist</code> DB, 로컬 Redis)으로 실행됩니다. 테이블은 JPA가 자동 생성합니다.</p>
+      </div>
+      <div class="panel glass reveal">
+        <h3>⚛️ Frontend</h3>
+<pre><code>cd frontend
+cp .env.local.example .env.local
+# NEXTAUTH_SECRET, NEXT_PUBLIC_API_URL 채우기
+npm install
+npm run dev              # :3000
+
+npm run lint</code></pre>
+        <p class="note">Next.js는 <code>.env.local</code>을 자동으로 읽습니다.</p>
+      </div>
+    </div>
+    <div class="gh-cta reveal">
+      <a class="btn btn-primary gbar" href="https://github.com/jsj1215/konolist" target="_blank" rel="noopener">GitHub에서 코드 보기 ↗</a>
+    </div>
+  </div>
+</section>
+
+<!-- tech -->
+<section id="tech">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="kicker">TECH STACK</div>
+      <h2>이렇게 만들었습니다</h2>
+    </div>
+    <div class="tech reveal">
+      <div class="chip">⚛️ Next.js 16.4 · React 19</div>
+      <div class="chip">🔐 NextAuth.js</div>
+      <div class="chip">🎨 Tailwind CSS 4</div>
+      <div class="chip">↕️ @dnd-kit</div>
+      <div class="chip">🍃 Spring Boot 3.5.16 · Java 21</div>
+      <div class="chip">🛡️ Spring Security · JWT</div>
+      <div class="chip">🐘 PostgreSQL · JPA</div>
+      <div class="chip">⚡ Redis</div>
+      <div class="chip">🕷️ Jsoup (TJ 번호 크롤링)</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <h3>🎤 <span class="grad">KonoList</span></h3>
+    <p>내 코노 18번, 이제 한 곳에서.</p>
+    <p style="margin-top:14px"><a href="https://github.com/jsj1215/konolist" target="_blank" rel="noopener" style="color:var(--p3);font-weight:700">github.com/jsj1215/konolist ↗</a></p>
+    <p style="margin-top:8px;opacity:.7">© 2026 KonoList · Personal Project</p>
+  </div>
+</footer>
+
+<script>
+  const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.12});
+  document.querySelectorAll('.reveal').forEach((el,i)=>{el.style.transitionDelay=(i%3*80)+'ms';io.observe(el)});
+</script>
+</body>
+</html>
