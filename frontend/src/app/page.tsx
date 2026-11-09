@@ -45,6 +45,15 @@ export default function HomePage() {
     }
   }
 
+  // 홈에서 로고를 누르면 검색 전 첫 화면으로 되돌림
+  function resetSearch() {
+    setQuery("");
+    setSongs([]);
+    setState("idle");
+    setModalSong(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   function handleAdd(song: Song) {
     if (!session) {
       window.location.href = "/login";
@@ -55,7 +64,7 @@ export default function HomePage() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-background">
-      <NavBar />
+      <NavBar onHomeClick={resetSearch} />
 
       {modalSong && (
         <AddToPlaylistModal

@@ -24,27 +24,29 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-
-  data:
-    redis:
-      url: ${REDIS_URL:redis://localhost:6379}
+        # 배포 DB는 seeyoulater와 같은 Supabase 프로젝트를 쓰고 konolist 스키마로 분리함.
+        # 스키마를 명시해야 테이블 생성/검사 시 다른 스키마의 같은 이름 테이블(users 등)과 섞이지 않음
+        default_schema: ${DB_SCHEMA:public}
 
 jwt:
   secret: ${JWT_SECRET}     # 필수. 32바이트 이상
   expiration-ms: 86400000   # 24시간
 
 server:
-  port: 8080
+  # Cloud Run은 PORT 환경변수로 포트를 지정함
+  port: ${PORT:8080}
 
 app:
   frontend-url: ${FRONTEND_URL:http://localhost:3000}
-  recording-dir: ./recordings
+  # 배포 환경에서는 Cloud Storage 버킷을 마운트한 경로(예: /mnt/recordings)를 지정
+  recording-dir: ${RECORDING_DIR:./recordings}
 
 crawling:
   tj:
     base-url: https://www.tjmedia.com
     cache-ttl-hours: 1
+    # 검색어별 결과를 서버 메모리에 보관하는 최대 개수
+    cache-max-entries: 1000
 
 logging:
   level:

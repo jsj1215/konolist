@@ -1,0 +1,28 @@
+# Firebase App Hosting 설정 (Next.js 서버를 App Hosting이 Cloud Run 위에서 실행함)
+# https://firebase.google.com/docs/app-hosting/configure
+
+runConfig:
+  # 데모 규모: 요청이 없으면 0대, 최대 1대
+  minInstances: 0
+  maxInstances: 1
+
+env:
+  # 브라우저와 NextAuth 서버가 호출하는 Spring Boot API(Cloud Run) 주소.
+  # NEXT_PUBLIC_ 값은 빌드할 때 번들에 들어가므로 BUILD와 RUNTIME 모두에 줌
+  - variable: NEXT_PUBLIC_API_URL
+    value: https://konolist-api-521135750658.asia-southeast1.run.app
+    availability:
+      - BUILD
+      - RUNTIME
+
+  # NextAuth가 콜백 URL을 만들 때 쓰는 이 사이트의 공개 주소
+  - variable: NEXTAUTH_URL
+    value: https://konolist-web--konolist-b2f44.asia-southeast1.hosted.app
+    availability:
+      - RUNTIME
+
+  # NextAuth 세션 암호화 키. 값은 Secret Manager에 두고 이름만 참조함
+  - variable: NEXTAUTH_SECRET
+    secret: konolist-nextauth-secret
+    availability:
+      - RUNTIME
