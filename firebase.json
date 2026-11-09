@@ -1,0 +1,16 @@
+{
+  "apphosting": [
+    {
+      "backendId": "konolist-web",
+      "rootDir": "frontend",
+      "ignore": [
+        "node_modules",
+        ".next",
+        ".git",
+        ".env*",
+        "firebase-debug.log",
+        "firebase-debug.*.log"
+      ]
+    }
+  ]
+}

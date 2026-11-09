@@ -201,7 +201,8 @@
     <h1>내 코노 18번,<br><span class="grad">이제 한 곳에서.</span></h1>
     <p class="sub">부를 노래가 생각 안 나서 검색만 하다 시간 다 보내셨나요? TJ 번호와 함께 나만의 노래 리스트를 만들고, 친구와 공유하고, 다녀온 날을 캘린더에 기록하세요.</p>
     <div class="cta">
-      <a class="btn btn-primary gbar" href="https://github.com/jsj1215/konolist" target="_blank" rel="noopener">GitHub 저장소 보기</a>
+      <a class="btn btn-primary gbar" href="https://konolist-web--konolist-b2f44.asia-southeast1.hosted.app/" target="_blank" rel="noopener">🎤 바로 써보기</a>
+      <a class="btn btn-ghost" href="https://github.com/jsj1215/konolist" target="_blank" rel="noopener">GitHub 저장소 보기</a>
       <a class="btn btn-ghost" href="#arch">설계 둘러보기</a>
     </div>
 
@@ -285,7 +286,7 @@
       <div class="fcard glass reveal"><div class="ic gbar">🔗</div><h3>플레이리스트 공유</h3><p>내 리스트를 공개로 전환하고 링크로 친구에게 공유하세요. 받은 리스트는 내 보관함으로 복사할 수 있습니다.</p></div>
       <div class="fcard glass reveal"><div class="ic gbar">📅</div><h3>캘린더 방문 일기</h3><p>코노 다녀온 날을 캘린더에 기록하고, 그날 부른 플레이리스트를 연결하세요. 언제 갔는지 한눈에 보입니다.</p></div>
       <div class="fcard glass reveal"><div class="ic gbar">🎙️</div><h3>곡별 녹음</h3><p>브라우저 마이크로 바로 녹음해 곡마다 저장하고, 나중에 다시 들으며 연습할 수 있습니다.</p></div>
-      <div class="fcard glass reveal"><div class="ic gbar">⚡</div><h3>검색 캐시</h3><p>한 번 검색한 키워드는 1시간 동안 Redis 캐시에서 바로 응답해, TJ 사이트를 매번 다시 조회하지 않습니다.</p></div>
+      <div class="fcard glass reveal"><div class="ic gbar">⚡</div><h3>검색 캐시</h3><p>한 번 검색한 키워드는 1시간 동안 서버 메모리 캐시에서 바로 응답해, TJ 사이트를 매번 다시 조회하지 않습니다.</p></div>
     </div>
   </div>
 </section>
@@ -374,7 +375,7 @@
     <div class="sec-head reveal">
       <div class="kicker">ARCHITECTURE</div>
       <h2>시스템 구성</h2>
-      <p>Next.js 프론트엔드와 Spring Boot REST API를 분리하고, 외부 사이트 크롤링 앞에 Redis 캐시를 두었습니다.</p>
+      <p>Next.js 프론트엔드와 Spring Boot REST API를 분리하고, 외부 사이트 크롤링 앞에 서버 메모리 캐시를 두었습니다. 데모는 Firebase App Hosting, Cloud Run, Supabase에 올라가 있습니다.</p>
     </div>
 
     <div class="arch reveal">
@@ -406,19 +407,19 @@
       <div class="arch-col">
         <div class="node glass">
           <div class="nt">🐘 PostgreSQL</div>
-          <div class="nd">users · playlists · playlist_songs · calendar_logs</div>
+          <div class="nd">users · playlists · playlist_songs · calendar_logs. 배포 DB는 Supabase의 <code>konolist</code> 스키마</div>
         </div>
         <div class="node glass">
-          <div class="nt">⚡ Redis</div>
-          <div class="nd"><code>song:search:{검색어}</code> TTL 1시간</div>
+          <div class="nt">⚡ 인메모리 캐시 (Caffeine)</div>
+          <div class="nd">검색어별 결과를 서버 메모리에 1시간, 최대 1000개 보관</div>
         </div>
         <div class="node glass">
           <div class="nt">🕷️ tjmedia.com</div>
           <div class="nd">캐시 미스일 때만 Jsoup으로 조회 (timeout 8초, 20건)</div>
         </div>
         <div class="node glass">
-          <div class="nt">💾 로컬 디스크</div>
-          <div class="nd"><code>recordings/{playlistId}/{songId}.webm</code></div>
+          <div class="nt">💾 녹음 디렉터리</div>
+          <div class="nd"><code>{RECORDING_DIR}/{playlistId}/{songId}.webm</code>. 배포 환경은 Cloud Storage 버킷을 <code>/mnt/recordings</code>에 마운트</div>
         </div>
       </div>
     </div>
@@ -427,8 +428,8 @@
       <h3>🔍 노래 검색 한 번에 일어나는 일</h3>
       <ol class="steps">
         <li><span><b>요청</b> — <code>GET /api/songs/search?q=아이유</code> (비로그인 허용, 1~50자 검증)</span></li>
-        <li><span><b>캐시 조회</b> — 검색어를 소문자·공백 정리해 <code>song:search:아이유</code> 키로 Redis 조회</span></li>
-        <li><span><b>히트</b> — 저장된 JSON을 그대로 반환</span></li>
+        <li><span><b>캐시 조회</b> — 앞뒤 공백을 지우고 소문자로 바꾼 검색어를 키로 서버 메모리의 Caffeine 캐시 조회</span></li>
+        <li><span><b>히트</b> — 보관해 둔 곡 목록을 그대로 반환</span></li>
         <li><span><b>미스</b> — Jsoup으로 TJ 검색 페이지를 가져와 CSS 셀렉터로 번호·제목·가수를 파싱하고 TJ 번호 기준으로 중복 제거</span></li>
         <li><span><b>저장</b> — 결과가 있을 때만 TTL 1시간으로 캐시. 크롤링 실패로 빈 결과가 나오면 캐시하지 않아 다음 요청에서 다시 시도</span></li>
       </ol>
@@ -449,19 +450,19 @@
         <div class="no">01</div>
         <h3>곡 마스터 테이블 대신 캐시 + 비정규화</h3>
         <dl>
-          <dt>결정</dt><dd>검색 결과는 Redis에만 1시간 보관하고, 리스트에 담을 때 TJ 번호·제목·가수를 <code>playlist_songs</code>에 복사</dd>
+          <dt>결정</dt><dd>검색 결과는 DB에 넣지 않고 서버 메모리 캐시에만 1시간 보관. 리스트에 담을 때 TJ 번호·제목·가수를 <code>playlist_songs</code>에 복사</dd>
           <dt>이유</dt><dd>TJ 전곡을 받을 공식 API가 없어 곡 마스터를 정확히 유지하기 어려움. 담은 곡은 원본 사이트가 바뀌어도 남아야 함</dd>
-          <dt>비용</dt><dd>Redis 장애 시 검색 실패. TJ 마크업이 바뀌면 셀렉터 수정 필요</dd>
+          <dt>비용</dt><dd>TJ 마크업이 바뀌면 셀렉터 수정 필요</dd>
         </dl>
         <div class="src"><code>song/SongSearchService.java</code></div>
       </div>
       <div class="dec glass reveal">
         <div class="no">02</div>
-        <h3>@Cacheable 대신 StringRedisTemplate</h3>
+        <h3>Redis를 걷어내고 서버 메모리 캐시로</h3>
         <dl>
-          <dt>결정</dt><dd>캐시 조회·저장을 코드로 직접 작성</dd>
-          <dt>이유</dt><dd>크롤링 실패로 빈 리스트가 나왔을 때 그 결과를 1시간 동안 캐시해 버리는 일을 막기 위함</dd>
-          <dt>비용</dt><dd>직렬화·예외 처리 코드를 직접 관리. 역직렬화 실패 시 재크롤링으로 폴백</dd>
+          <dt>결정</dt><dd>처음엔 Redis에 두던 검색 캐시를 Caffeine 인메모리 캐시로 교체. <code>@Cacheable</code> 없이 코드에서 직접 넣고 꺼내며, 빈 결과는 캐시하지 않음</dd>
+          <dt>이유</dt><dd>데모가 Cloud Run 인스턴스 1대로 돌아가 서버 메모리로 충분함. 관리할 외부 서비스가 하나 줄고 로컬 실행에도 Redis가 필요 없음. 크롤링 실패로 나온 빈 결과가 1시간 동안 굳는 일도 막음</dd>
+          <dt>비용</dt><dd>재시작이나 인스턴스 종료 시 캐시가 비고, 여러 대로 늘리면 인스턴스마다 따로 캐시</dd>
         </dl>
         <div class="src"><code>song/SongSearchService.java</code></div>
       </div>
@@ -571,9 +572,12 @@
       <div class="panel glass reveal">
         <h3>⚠️ 알고 있는 한계</h3>
         <ul class="chk warn">
-          <li>리프레시 토큰이 없어 24시간 뒤 재로그인 필요</li>
+          <li>백엔드 JWT와 NextAuth 세션 모두 24시간, 리프레시 토큰이 없어 24시간 뒤 재로그인 필요</li>
           <li>로그인과 노래 검색에 요청 횟수 제한이 없음</li>
-          <li>녹음 파일이 로컬 디스크에 있어 서버를 늘리면 공유 스토리지가 필요</li>
+          <li>검색 캐시가 서버 메모리에 있어 재시작하면 비고, 인스턴스마다 따로 쌓임</li>
+          <li>녹음 버킷은 Cloud Storage FUSE로 마운트해 완전한 POSIX 파일 시스템이 아님. 파일을 통째로 쓰고 읽고 지우는 지금 용도에는 문제없음</li>
+          <li>Supabase 프로젝트를 다른 앱과 같이 써서 무료 플랜의 DB 용량과 비활성 시 일시 정지가 함께 적용됨</li>
+          <li>데모 인스턴스가 최소 0대라 오래 쉰 뒤 첫 요청은 10초 안팎 걸림</li>
           <li>카카오 로그인은 기획에만 있고 현재는 이메일/비밀번호 방식</li>
         </ul>
       </div>
@@ -587,7 +591,7 @@
     <div class="sec-head reveal">
       <div class="kicker">GET STARTED</div>
       <h2>로컬에서 실행하기</h2>
-      <p>Java 21, Node.js 20.9+, PostgreSQL, Redis가 필요합니다.</p>
+      <p>Java 21, Node.js 20.9+, PostgreSQL만 있으면 됩니다. 설치 없이 먼저 써 보고 싶다면 배포된 데모를 열어 보세요.</p>
     </div>
     <div class="two">
       <div class="panel glass reveal">
@@ -597,8 +601,8 @@ cp .env.example .env
 # JWT_SECRET 채우기: openssl rand -base64 48
 ./mvnw spring-boot:run   # :8080, .env 자동 로드
 
-./mvnw test              # 16개, H2로 실행 (DB·Redis 불필요)</code></pre>
-        <p class="note">DB·Redis 값이 없으면 로컬 기본값(PostgreSQL <code>konolist</code> DB, 로컬 Redis)으로 실행됩니다. 테이블은 JPA가 자동 생성합니다.</p>
+./mvnw test              # 19개, H2로 실행 (DB 불필요)</code></pre>
+        <p class="note">DB 값이 없으면 로컬 PostgreSQL의 <code>konolist</code> DB로 실행되고, 테이블은 JPA가 자동 생성합니다. 검색 캐시는 서버 메모리에 있어 따로 띄울 것이 없고, 녹음은 <code>./recordings</code>에 저장됩니다.</p>
       </div>
       <div class="panel glass reveal">
         <h3>⚛️ Frontend</h3>
@@ -612,8 +616,19 @@ npm run lint</code></pre>
         <p class="note">Next.js는 <code>.env.local</code>을 자동으로 읽습니다.</p>
       </div>
     </div>
-    <div class="gh-cta reveal">
-      <a class="btn btn-primary gbar" href="https://github.com/jsj1215/konolist" target="_blank" rel="noopener">GitHub에서 코드 보기 ↗</a>
+    <div class="flow glass reveal">
+      <h3>☁️ 배포 구성</h3>
+      <ol class="steps">
+        <li><span><b>프론트엔드</b> — Firebase App Hosting이 Next.js 서버를 실행. NextAuth가 쿠키를 여러 개 쓰는데 Firebase Hosting 프록시는 <code>__session</code> 외 쿠키를 지워서 App Hosting을 선택</span></li>
+        <li><span><b>백엔드</b> — <code>backend/Dockerfile</code>로 빌드한 Spring Boot 컨테이너를 Cloud Run <code>konolist-api</code>에서 실행 (싱가포르, 최소 0대·최대 1대)</span></li>
+        <li><span><b>DB</b> — Supabase PostgreSQL을 다른 앱과 함께 쓰고, 전용 역할 <code>konolist_app</code>이 <code>konolist</code> 스키마만 사용</span></li>
+        <li><span><b>녹음</b> — 비공개 Cloud Storage 버킷을 <code>/mnt/recordings</code>에 마운트해 기존 파일 저장 코드를 그대로 사용</span></li>
+        <li><span><b>시크릿</b> — DB 비밀번호, <code>JWT_SECRET</code>, <code>NEXTAUTH_SECRET</code>은 Secret Manager에서 주입</span></li>
+      </ol>
+    </div>
+    <div class="gh-cta cta reveal">
+      <a class="btn btn-primary gbar" href="https://konolist-web--konolist-b2f44.asia-southeast1.hosted.app/" target="_blank" rel="noopener">🎤 바로 써보기</a>
+      <a class="btn btn-ghost" href="https://github.com/jsj1215/konolist" target="_blank" rel="noopener">GitHub에서 코드 보기 ↗</a>
     </div>
   </div>
 </section>
@@ -633,8 +648,11 @@ npm run lint</code></pre>
       <div class="chip">🍃 Spring Boot 3.5.16 · Java 21</div>
       <div class="chip">🛡️ Spring Security · JWT</div>
       <div class="chip">🐘 PostgreSQL · JPA</div>
-      <div class="chip">⚡ Redis</div>
+      <div class="chip">⚡ Caffeine (인메모리 캐시)</div>
       <div class="chip">🕷️ Jsoup (TJ 번호 크롤링)</div>
+      <div class="chip">🔥 Firebase App Hosting</div>
+      <div class="chip">☁️ Cloud Run · Cloud Storage</div>
+      <div class="chip">🟢 Supabase</div>
     </div>
   </div>
 </section>

@@ -1,4 +1,4 @@
-# 테스트 전용 설정: PostgreSQL/Redis 없이 ./mvnw test 가 돌도록 H2 인메모리 DB 사용
+# 테스트 전용 설정: PostgreSQL 없이 ./mvnw test 가 돌도록 H2 인메모리 DB 사용
 spring:
   application:
     name: konolist-backend-test
@@ -13,11 +13,6 @@ spring:
     hibernate:
       ddl-auto: create-drop
     open-in-view: false
-
-  # Lettuce는 첫 명령 시점에 연결하므로 Redis 없이도 컨텍스트가 뜸
-  data:
-    redis:
-      url: redis://localhost:6379
 
 jwt:
   secret: test-only-jwt-secret-0123456789abcdef0123456789abcdef

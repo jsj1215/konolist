@@ -4,8 +4,23 @@ import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { ThemeToggle } from "./ThemeToggle";
 
-export function NavBar() {
+interface NavBarProps {
+  /**
+   * 로고를 눌렀을 때 추가로 실행할 동작.
+   * 홈 화면에서는 같은 주소("/")로 이동해도 화면이 다시 그려지지 않으므로,
+   * 홈이 검색 상태를 초기화하는 함수를 넘겨줌
+   */
+  onHomeClick?: () => void;
+}
+
+export function NavBar({ onHomeClick }: NavBarProps = {}) {
   const { data: session } = useSession();
+
+  function handleLogoClick(e: React.MouseEvent<HTMLAnchorElement>) {
+    // Cmd/Ctrl/Shift 클릭이나 휠 클릭은 새 탭·창으로 열리므로 현재 화면은 그대로 둠
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    onHomeClick?.();
+  }
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/60 bg-background/75 backdrop-blur-xl backdrop-saturate-150">
@@ -20,6 +35,7 @@ export function NavBar() {
         {/* Logo */}
         <Link
           href="/"
+          onClick={handleLogoClick}
           className="group flex items-center gap-2 select-none"
           aria-label="코노리스트 홈"
         >
